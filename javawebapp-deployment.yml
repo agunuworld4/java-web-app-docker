@@ -13,7 +13,7 @@ spec:
         name: javawebapp
     spec:
       containers:
-      - image: 172.31.9.51:8085/java-web-app
+      - image: agunuworld/java-web-app
         name: javawebapp
         ports:
         - name: javawebapp
