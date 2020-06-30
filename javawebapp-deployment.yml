@@ -13,6 +13,8 @@ spec:
         name: javawebapp
     spec:
       containers:
+      imagePullSecrets:
+      - name: dockersecrepo
       - image: 172.31.9.51:8085/java-web-app
         name: javawebapp
         ports:
