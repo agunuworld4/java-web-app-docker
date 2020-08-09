@@ -12,7 +12,7 @@ RUN mvn -f /home/app/pom.xml clean package
 FROM tomcat:8.0.20-jre8
 # Dummy text to test 
 #COPY --from=stage1 /home/app/target/java-web-app*.war /usr/local/tomcat/webapps/java-web-app.war  #java-web-app.war
-COPY  /home/app/target/target/java-web-app*.war /usr/local/tomcat/webapps/java-web-app.war
+COPY  /home/app/target/java-web-app*.war /usr/local/tomcat/webapps/java-web-app.war
 
 # Create an Image
 #FROM openjdk:8-jdk-alpine
