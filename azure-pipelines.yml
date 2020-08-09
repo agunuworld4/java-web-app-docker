@@ -38,24 +38,24 @@ stages:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'manifests'
         publishLocation: 'Container'
-# - stage: Deploy
-#   displayName: Deploy image
-#   jobs:  
-#   - job: Deploy
-#     displayName: Deploy
-#     pool:
-#       vmImage: 'ubuntu-latest'
-#     steps:
-#     - task: DownloadPipelineArtifact@2
-#       inputs:
-#         buildType: 'current'
-#         artifactName: 'manifests'
-#         itemPattern: '**/*.yaml'
-    #     targetPath: '$(System.ArtifactsDirectory)'
-    # - task: KubernetesManifest@0
-    #   inputs:
-    #     action: 'deploy'
-    #     kubernetesServiceConnection: 'kubernetes-service-connection-on-azurexyz'
-    #     namespace: 'default'
-    #     manifests: '$(System.ArtifactsDirectory)/projects/hello-world/deployment.azurejava.yaml'
-    #     containers: 'agunuworld/hello-world-java:$(tag)'
+- stage: Deploy
+  displayName: Deploy image
+  jobs:  
+  - job: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'manifests'
+        itemPattern: '**/*.yml'
+        targetPath: '$(System.ArtifactsDirectory)'
+    - task: KubernetesManifest@0
+      inputs:
+        action: 'deploy'
+        kubernetesServiceConnection: 'kubernetes-service-connection-on-azurexyz'
+        namespace: 'default'
+        manifests: '$(System.ArtifactsDirectory)/javawebapp-deployment.yml'
+        containers: 'agunuworld/java-web-app:$(tag)'
