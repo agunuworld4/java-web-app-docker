@@ -5,9 +5,8 @@ metadata:
   labels:
     name: javawebapp
   name: java-controller
-  namespace: agunuworld4
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -16,7 +15,7 @@ spec:
       imagePullSecrets:
       - name: dockersecrepo
       containers:
-      - image: 172.31.9.51:8085/java-web-app:12
+      - image:  agunuworld/java-web-app                                                              #172.31.9.51:8085/java-web-app:12
         name: javawebapp
         ports:
         - name: javawebapp
@@ -29,9 +28,8 @@ metadata:
   labels:
     name: javawebapp
   name: javawebapp
-  namespace: agunuworld4
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 8080
       targetPort: 8080
