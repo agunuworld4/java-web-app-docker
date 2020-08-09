@@ -1,25 +1,23 @@
----
-apiVersion: v1
-kind: ReplicationController
-metadata:
-  labels:
-    name: javawebapp
-  name: java-controller
-spec:
-  replicas: 2
+--- 
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2 
+kind: Deployment 
+metadata: 
+  name: javawebapp
+spec: 
+  selector: 
+    matchLabels: 
+      app: javawebapp 
+  replicas: 2 # tells deployment to run 2 pods matching the template 
   template:
-    metadata:
-      labels:
-        name: javawebapp
-    spec:
-      imagePullSecrets:
-      - name: dockersecrepo
-      containers:
-      - image:  agunuworld/java-web-app                                                              #172.31.9.51:8085/java-web-app:12
-        name: javawebapp
-        ports:
-        - name: javawebapp
-          containerPort: 8080  
+    metadata: 
+      labels: 
+        app: javawebapp 
+    spec: 
+      containers: 
+      - name: javawebapp
+        image:  agunuworld/java-web-app:22
+        ports: 
+        - containerPort: 8080
 ---
 # Node Port Service
 apiVersion: v1
