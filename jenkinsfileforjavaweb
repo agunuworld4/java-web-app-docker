@@ -55,13 +55,6 @@ node {
         sh "docker push 10.168.0.9:9095/java-web-app-docker:${buildNumber} "
      }
     
-    stage('Build Docker Image'){
-        sh "docker rmi -f agunuworld/java-web-app-docker:${buildNumber} ."
-    }
-
-     stage('Remove Docker Image'){
-        sh "docker rmi -f  10.168.0.9:9095/java-web-app-docker:${buildNumber} ."
-    }
 
     
 }
