@@ -44,17 +44,6 @@ node {
         sh "docker push agunuworld/java-web-app-docker:${buildNumber} "
      }
 
-     stage('Build Docker Image'){
-        sh "docker build -t 10.168.0.9:9095/java-web-app-docker:${buildNumber} ."
-    }
-
-    stage('Push Docker Image'){
-         withCredentials([string(credentialsId: 'myNexusPrivateRepo_PWD', variable: 'myNexusPrivateRepo_PWD')]) {
-          sh "docker login -u admin -p ${myNexusPrivateRepo_PWD} 10.168.0.9:9095"
-        }
-        sh "docker push 10.168.0.9:9095/java-web-app-docker:${buildNumber} "
-     }
-    
-
+     
     
 }
