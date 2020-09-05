@@ -63,9 +63,4 @@ node {
         sh "docker rmi -f  10.168.0.9:9095/java-web-app-docker:${buildNumber} ."
     }
 
-    stage ('Slack notification')  {
-    //slackSend(channel:'channel-name', message: "Docker image buid and pushed to regigistry, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-   slackSend baseUrl: 'https://hooks.slack.com/services/', channel: '#﻿jenkins-devops-microservices', color: 'good', message: 'Docker image yesbuid and pushed to regigistry  jenkins devops microservices', tokenCredentialId: 'slack-authenticaiton-connection'
-   }
-
-}
+    
