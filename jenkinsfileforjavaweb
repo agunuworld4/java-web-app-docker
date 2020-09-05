@@ -1,0 +1,71 @@
+node {
+     
+     def buildNumber = BUILD_NUMBER
+    def mvnHome = tool 'myMaven4'
+    
+    stage ("checkout")  {
+    git credentialsId: 'git-authentication-jenkins-login', url: 'https://github.com/agunuworld4/java-web-app-docker.git'
+    }
+
+  
+  stage ('build')  {
+    sh "${mvnHome}/bin/mvn clean install "
+    }
+
+   stage ('Slack notification')  {
+        //slackSend(channel:'channel-name', message: "jenkins Job is successfully build, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend baseUrl: 'https://hooks.slack.com/services/', channel: '#﻿jenkins-devops-microservices', color: 'good', message: 'jenkins Job is successfully build  jenkins devops microservices', tokenCredentialId: 'slack-authenticaiton-connection'
+      }
+
+   stage ('Code Quality scan')  {
+       withSonarQubeEnv('SonarQube') {
+       sh "${mvnHome}/bin/mvn  sonar:sonar"
+        }
+   }
+        
+      
+   stage ('Code coverage')  {
+    jacoco buildOverBuild: true, changeBuildStatus: true, deltaBranchCoverage: '20', deltaClassCoverage: '20', deltaComplexityCoverage: '20', deltaInstructionCoverage: '20', deltaLineCoverage: '20', deltaMethodCoverage: '20', maximumBranchCoverage: '20', maximumClassCoverage: '20', maximumComplexityCoverage: '20', maximumInstructionCoverage: '20', maximumLineCoverage: '20', maximumMethodCoverage: '20', minimumBranchCoverage: '20', minimumClassCoverage: '20', minimumComplexityCoverage: '20', minimumInstructionCoverage: '20', minimumLineCoverage: '20', minimumMethodCoverage: '20', runAlways: true
+   }
+   
+    stage ('Slack notification')  {
+    //slackSend(channel:'channel-name', message: "code analysis passed and successfull, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+   slackSend baseUrl: 'https://hooks.slack.com/services/', channel: '#﻿jenkins-devops-microservices', color: 'good', message: 'code analysis passed and successfulll on  jenkins devops microservices', tokenCredentialId: 'slack-authenticaiton-connection'
+   }
+
+    stage('Build Docker Image'){
+        sh "docker build -t agunuworld/java-web-app-docker:${buildNumber} ."
+    }
+  
+     stage('Push Docker Image'){
+         withCredentials([string(credentialsId: 'jenkins-docker-public-hub-conneciton', variable: 'myDockerPublicRegistry')]) {
+          sh "docker login -u agunuworld -p ${myDockerPublicRegistry}"
+        }
+        sh "docker push agunuworld/java-web-app-docker:${buildNumber} "
+     }
+
+     stage('Build Docker Image'){
+        sh "docker build -t 10.168.0.9:9095/java-web-app-docker:${buildNumber} ."
+    }
+
+    stage('Push Docker Image'){
+         withCredentials([string(credentialsId: 'myNexusPrivateRepo_PWD', variable: 'myNexusPrivateRepo_PWD')]) {
+          sh "docker login -u admin -p ${myNexusPrivateRepo_PWD} 10.168.0.9:9095"
+        }
+        sh "docker push 10.168.0.9:9095/java-web-app-docker:${buildNumber} "
+     }
+    
+    stage('Build Docker Image'){
+        sh "docker rmi -f agunuworld/java-web-app-docker:${buildNumber} ."
+    }
+
+     stage('Remove Docker Image'){
+        sh "docker rmi -f  10.168.0.9:9095/java-web-app-docker:${buildNumber} ."
+    }
+
+    stage ('Slack notification')  {
+    //slackSend(channel:'channel-name', message: "Docker image buid and pushed to regigistry, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+   slackSend baseUrl: 'https://hooks.slack.com/services/', channel: '#﻿jenkins-devops-microservices', color: 'good', message: 'Docker image buid and pushed to regigistry  jenkins devops microservices', tokenCredentialId: 'slack-authenticaiton-connection'
+   }
+
+}
