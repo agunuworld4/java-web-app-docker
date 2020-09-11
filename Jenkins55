@@ -1,0 +1,123 @@
+pipeline
+   {
+    
+    agent any
+
+    environment 
+    {
+        VERSION = "${BUILD_NUMBER}"
+        PROJECT = 'mvnproject'
+        IMAGE = "$PROJECT:$VERSION"
+        ECRURL = 'http://311301640590.dkr.ecr.us-east-2.amazonaws.com/mvnproject'
+        ECRCRED = 'ecr:us-east-2:myAwsAuthenticationPluginLogins'
+        mavenHome = tool 'myMaven4'
+		PATH = "$mavenHome/bin:$PATH"
+        }
+
+    stages
+           {
+         
+          
+		stage('Compile Decode') {
+			steps {
+				sh "mvn clean package"
+			}
+		}
+
+        stage ('Test') {
+            steps {
+                sh "mvn test"
+            }
+        }
+
+        
+        stage("build & SonarQube analysis") {
+            agent any
+            steps {
+              withSonarQubeEnv('sonarQube') {
+                sh 'mvn clean package sonar:sonar'
+              }
+            }
+          }
+
+        stage('Build Docker Image')
+        {
+            steps
+            {
+                script
+                {
+                    docker.build("$IMAGE")  
+                }
+            }
+        }
+
+        stage('Push Image To ECR')
+        {
+            steps
+            {
+                script
+                {
+                
+                    docker.withRegistry(ECRURL, ECRCRED)
+                    {
+                        docker.image(IMAGE).push()
+                    }
+                }
+            }
+        }
+
+
+        stage ('Dev Notification')  {
+            steps{
+            slackSend(channel:'automationeksdeploy', message: "Codes On Dev Env Waiting for Dev Manager Aprover, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+           }
+            
+          
+
+            stage ('DEV Approve')  {
+                steps{
+                echo "Taking approval from DEV Manager"     
+                 timeout(time: 7, unit: 'DAYS') {
+                input message: 'Do you want to deploy?', submitter: 'admin'
+                    }
+                 }
+                }
+
+            stage ('QA Notification')  {
+            steps{
+            slackSend(channel:'automationeksdeploy', message: "Code Approved By Dev Manager,Available For QA Testing, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            }
+           }
+
+
+        stage ('QA Approve')  {
+            steps{
+             echo "Taking approval from QA manager"
+              timeout(time: 7, unit: 'DAYS') {
+              input message: 'Do you want to proceed to PROD?', submitter: 'admin,manager_userid'
+                }
+               }
+            }
+
+
+       stage('Deploy To Kubernetes'){
+           steps{
+               //sh "chmod +x changeTag.sh"
+               //sh "./changeTag.sh ${DOCKER_TAG}"
+               sshagent(['eksclimasternodes']) {
+               sh "scp -o StrictHostKeyChecking=no services.yml node-app-pod.yml ec2-user@3.135.209.242:/home/ec2-user/"
+               script{
+                   try{
+                       sh "ssh ec2-user@3.135.209.242 kubectl apply -f ."
+                   }catch(error){
+                       sh "ssh ec2-user@3.135.209.242 kubectl create -f ."
+                   }
+               }
+            }
+           }
+       } 
+
+
+    }   
+  } 
