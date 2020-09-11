@@ -73,7 +73,12 @@ pipeline
             }
            }
             
-          
+        
+          stage('DeployOnDevEnv'){
+               steps{
+                deploy adapters: [tomcat9(credentialsId: 'tomcatcredentials', path: '', url: 'http://35.235.107.4:8080/')], contextPath: 'springbootDevpath', war: '**/*.war'
+               }
+             }
 
             stage ('DEV Approve')  {
                 steps{
@@ -89,11 +94,17 @@ pipeline
             slackSend(channel:'automationeksdeploy', message: "Code Approved By Dev Manager,Available For QA Testing, here is the info -  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
             }
            }
+           
 
+           stage('DeployOnQAEnv'){
+               steps{
+                deploy adapters: [tomcat9(credentialsId: 'tomcatcredentials', path: '', url: 'http://35.235.107.4:8080/')], contextPath: 'springbootQApath', war: '**/*.war'
+               }
+             }
 
-        stage ('QA Approve')  {
-            steps{
-             echo "Taking approval from QA manager"
+          stage ('QA Approve')  {
+              steps{
+               echo "Taking approval from QA manager"
               timeout(time: 7, unit: 'DAYS') {
               input message: 'Do you want to proceed to PROD?', submitter: 'admin,manager_userid'
                 }
